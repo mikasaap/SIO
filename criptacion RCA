@@ -1,0 +1,127 @@
+import random
+
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+def modinv(a, m):
+    m0, x0, x1 = m, 0, 1
+    if m == 1:
+        return 0
+    while a > 1:
+        q = a // m
+        m, a = a % m, m
+        x0, x1 = x1 - q * x0, x0
+    if x1 < 0:
+        x1 += m0
+    return x1
+
+def modexp(base, exp, mod):
+    result = 1
+    while exp > 0:
+        if exp % 2 == 1:
+            result = (result * base) % mod
+        base = (base * base) % mod
+        exp = exp // 2
+    return result
+
+def is_prime(num):
+    if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0 or num % 3 == 0:
+        return False
+    i = 5
+    while i * i <= num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def generate_prime_candidate(length):
+    # Generar un número impar aleatorio de "length" bits
+    p = random.getrandbits(length)
+    p |= (1 << length - 1) | 1
+    return p
+
+def generate_prime_number(length=1024):
+    p = 0
+    while not is_prime(p):
+        p = generate_prime_candidate(length)
+    return p
+
+def generate_keys(keysize=1024):
+    p = generate_prime_number(keysize)
+    q = generate_prime_number(keysize)
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    e = 65537  # Valor comúnmente usado para e
+    d = modinv(e, phi)
+    return ((e, n), (d, n))
+
+def rsa_encrypt(m, e, n):
+    return modexp(m, e, n)
+
+def rsa_decrypt(c, d, n):
+    return modexp(c, d, n)
+
+def text_to_numbers(text):
+    return [ord(char) for char in text]
+
+def numbers_to_text(numbers):
+    return ''.join(chr(num) for num in numbers)
+
+# Generar claves
+public_key, private_key = generate_keys()
+
+e, n = public_key
+d, n = private_key
+
+print(f"Clave pública: (e={e}, n={n})")
+print(f"Clave privada: (d={d}, n={n})")
+
+# Mensaje original
+message = "Hola Mundo"
+
+# Convertir mensaje a números
+message_numbers = text_to_numbers(message)
+print(f"Números del mensaje: {message_numbers}")
+
+# Cifrado
+encrypted_numbers = [rsa_encrypt(m, e, n) for m in message_numbers]
+print(f"Números cifrados: {encrypted_numbers}")
+
+# Descifrado
+decrypted_numbers = [rsa_decrypt(c, d, n) for c in encrypted_numbers]
+print(f"Números descifrados: {decrypted_numbers}")
+
+# Convertir números a texto
+decrypted_message = numbers_to_text(decrypted_numbers)
+print(f"Mensaje descifrado: {decrypted_message}")
+```
+
+### Explicación del código:
+1. **Generación de claves**:
+   - `is_prime(num)`: Verifica si un número es primo.
+   - `generate_prime_candidate(length)`: Genera un candidato a primo de `length` bits.
+   - `generate_prime_number(length)`: Genera un número primo.
+   - `generate_keys(keysize)`: Genera un par de claves RSA (pública y privada).
+
+2. **Cifrado y descifrado**:
+   - `rsa_encrypt(m, e, n)`: Cifra el mensaje `m` usando la clave pública `(e, n)`.
+   - `rsa_decrypt(c, d, n)`: Descifra el mensaje cifrado `c` usando la clave privada `(d, n)`.
+
+3. **Conversión de texto**:
+   - `text_to_numbers(text)`: Convierte un texto en una lista de números ASCII.
+   - `numbers_to_text(numbers)`: Convierte una lista de números ASCII en texto.
+
+4. **Uso del programa**:
+   - Genera un par de claves RSA.
+   - Convierte un mensaje de texto en números ASCII.
+   - Cifra cada número.
+   - Descifra cada número cifrado.
+   - Convierte los números descifrados de nuevo a texto.
+
+Este programa genera claves RSA, cifra y descifra un mensaje de texto, y demuestra todo el proceso paso a paso.
